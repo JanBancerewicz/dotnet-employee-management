@@ -1,0 +1,78 @@
+# Pliki buildów
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+*.log
+
+# Pliki użytkownika Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+
+# Foldery tymczasowe
+.vscode/
+.vs/
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# Pliki NuGet
+*.nupkg
+packages/
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# Testy lokalne
+TestResults/
+*.coverage
+*.coveragexml
+
+# Pliki kompilacji .NET
+*.dll
+*.exe
+*.app
+*.pdb
+
+# Baza danych SQLite lokalna (jeśli używasz)
+*.db
+*.sqlite
+
+# Konfiguracja Rider/JetBrains (jeśli używasz)
+.idea/
+*.sln.iml
+
+# Ustawienia publish
+publish/
+
+# Pliki tymczasowe
+*.tmp
+*.temp
+*.bak
+*.old
+
+# System plików
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Pliki MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Pliki Linux
+*~
+
+# Zależności lokalne (jeśli pobierasz libki do folderu)
+lib/
+libs/
+
+# Pliki konfiguracyjne użytkownika
+*.userprefs
+*.local.json
