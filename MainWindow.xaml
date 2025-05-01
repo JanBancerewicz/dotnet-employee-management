@@ -8,12 +8,12 @@
         Title="MainWindow" Height="600" Width="1200">
     <StackPanel>
         <Menu>
-        <MenuItem Header="Application">
-            <MenuItem Header="Generate data" Click="Generate_Click"/>
-            <MenuItem Header="Version" Click="Version_Click"/>
-            <Separator/>
-            <MenuItem Header="Exit" Click="Exit_Click"/>
-        </MenuItem>
+            <MenuItem Header="Application">
+                <MenuItem Header="Generate data" Click="Generate_Click"/>
+                <MenuItem Header="Version" Click="Version_Click"/>
+                <Separator/>
+                <MenuItem Header="Exit" Click="Exit_Click"/>
+            </MenuItem>
 
         </Menu>
         <Grid>
@@ -31,7 +31,7 @@
             <!-- Lewy panel -->
             <StackPanel Grid.Column="0" Margin="0">
                 <TextBox Name="textBox1" TextWrapping="Wrap" AcceptsReturn="True" VerticalAlignment="Stretch" />
-                <TreeView Name="PracownicyTreeView" Margin="10" Height="445">
+                <TreeView Name="PracownicyTreeView" Margin="10" Height="445" SelectedItemChanged="PracownicyTreeView_SelectedItemChanged">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Podwladni}">
                             <TextBlock Text="{Binding}" />
@@ -46,6 +46,9 @@
             <!-- Prawy panel -->
             <StackPanel Grid.Column="2" Margin="0">
                 <TextBox Name="textBox2" TextWrapping="Wrap" AcceptsReturn="True" VerticalAlignment="Stretch" />
+                <ScrollViewer Height="482">
+                    <TextBlock x:Name="detailsTextBlock" TextWrapping="Wrap"/>
+                </ScrollViewer>
             </StackPanel>
         </Grid>
 

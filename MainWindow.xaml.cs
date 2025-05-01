@@ -57,6 +57,16 @@ namespace dotnet
             Application.Current.Shutdown();
         }
 
+        private void PracownicyTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var selectedItem = e.NewValue;
+
+            if (selectedItem is Pracownik pracownik)
+            {
+                detailsTextBlock.Text = pracownik.GetDetailsString(0);
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();

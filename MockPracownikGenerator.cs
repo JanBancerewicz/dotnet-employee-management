@@ -22,12 +22,12 @@ namespace dotnet
         public static Pracownik GeneratePracownik()
         {
             return new Pracownik(
-            Choose(names),
-            Choose(surnames),
-            random.Next(1, 31),
-            Math.Round(random.NextDouble() * 100) * 100 + 4000,
-            Choose(roles)
-    );
+                Choose(names),
+                Choose(surnames),
+                random.Next(1, 31),
+                Math.Round(random.NextDouble() * 100) * 100 + 4000,
+                Choose(roles)
+            );
         }
 
         public static HashSet<Pracownik> GenerateForest(int branchingFactor, int depth)
