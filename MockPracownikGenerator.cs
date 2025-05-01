@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,9 +32,9 @@ namespace dotnet
             );
         }
 
-        public static HashSet<Pracownik> GenerateForest(int branchingFactor, int depth)
+        public static ObservableCollection<Pracownik> GenerateForest(int branchingFactor, int depth)
         {
-            var forest = new HashSet<Pracownik>();
+            var forest = new ObservableCollection<Pracownik>();
             for (int i = 0; i < branchingFactor; i++)
             {
                 forest.Add(GenerateTree(branchingFactor, depth, null));
