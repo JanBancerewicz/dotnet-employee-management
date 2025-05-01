@@ -1,4 +1,6 @@
-﻿using System.Net.Quic;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Net.Quic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,9 +19,6 @@ namespace dotnet
     /// </summary>
     public partial class MainWindow : Window
     {
-        
-
-
         private TreeViewItem BuildTreeItem(Pracownik pracownik)
         {
             TreeViewItem item = new TreeViewItem
@@ -34,8 +33,6 @@ namespace dotnet
 
             return item;
         }
-
-
 
 
         private void Version_Click(object sender, RoutedEventArgs e)
@@ -55,6 +52,41 @@ namespace dotnet
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        private void PracownicyTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var selectedItem = e.NewValue;
+
+            if (selectedItem is Pracownik pracownik)
+            {
+                detailsTextBlock.Text = pracownik.GetDetailsString(0);
+            }
+        }
+
+        private void ItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            {
+                if (pracownik.Przelozony == null)
+                {
+                    ((ObservableCollection<Pracownik>) PracownicyTreeView.ItemsSource).Remove(pracownik);
+                    PracownicyTreeView.UpdateLayout();
+                }
+                else
+                {
+                    pracownik.Przelozony.Podwladni.Remove(pracownik);
+                }
+            }
+        }
+
+        private void ItemAdd_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            {
+                var formWindow = new AddPodwladnyWindow(pracownik);
+                formWindow.ShowDialog();
+            }
         }
 
         public MainWindow()

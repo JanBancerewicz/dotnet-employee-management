@@ -16,10 +16,12 @@ namespace dotnet
         public double Pensja { get; set; }
         public string Stanowisko { get; set; }
         public ObservableCollection<Pracownik> Podwladni { get; set; }
+        
+        public Pracownik Przelozony { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko)
+        public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko, Pracownik przelozony)
         {
             Imie = imie;
             Nazwisko = nazwisko;
@@ -27,6 +29,7 @@ namespace dotnet
             Pensja = pensja;
             Stanowisko = stanowisko;
             Podwladni = new ObservableCollection<Pracownik>();
+            Przelozony = przelozony;
         }
 
 
@@ -48,7 +51,22 @@ namespace dotnet
             return $"Pracownik{{ stanowisko = {Stanowisko}, nazwisko = {Nazwisko}, imie = {Imie}, staz = {Staz}, pensja = {Pensja} }}";
         }
 
-        
+        public string GetDetailsString(int indent)
+        {
+            string ind = string.Concat(Enumerable.Repeat(" ", indent * 4));
+            string podwl = Podwladni.Count == 0 ?
+                $"{ind}    [Brak]\n"
+                : string.Concat(Podwladni.Select(x => x.GetDetailsString(indent + 1)).ToArray());
+
+            return $"{ind}Imie: {Imie}\n" +
+                $"{ind}Nazwisko: {Nazwisko}\n" +
+                $"{ind}Stanowisko: {Stanowisko}\n" +
+                $"{ind}Staż: {Staz}\n" +
+                $"{ind}Pensja: {Pensja}\n" +
+                $"{ind}Podwładni:\n" +
+                $"{podwl}";
+        }
+
 
         private int GetPodwladniCount(Dictionary<Pracownik, int> statistics)
         {
@@ -62,9 +80,5 @@ namespace dotnet
             statistics[this] = subCount;
             return subCount;
         }
-
-        
-
-        // Można dodać ręczne wywoływanie PropertyChanged przy zmianach, jeśli chcesz z czasem umożliwić edytowanie danych w GUI
     }
 }
