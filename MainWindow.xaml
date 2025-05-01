@@ -34,7 +34,14 @@
                 <TreeView Name="PracownicyTreeView" Margin="10" Height="445" SelectedItemChanged="PracownicyTreeView_SelectedItemChanged">
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Podwladni}">
-                            <TextBlock Text="{Binding}" />
+                            <TextBlock Text="{Binding}">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Usuń" Click="ItemDelete_Click" />
+                                        <MenuItem Header="Dodaj podwladnego" Click="ItemAdd_Click" />
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>

@@ -67,6 +67,22 @@ namespace dotnet
             }
         }
 
+        private void ItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            {
+                pracownik.Przelozony.Podwladni.Remove(pracownik);
+            }
+        }
+
+        private void ItemAdd_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            {
+                MessageBox.Show($"Add to {pracownik.Imie} {pracownik.Nazwisko}");
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();

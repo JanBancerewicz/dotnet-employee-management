@@ -16,10 +16,12 @@ namespace dotnet
         public double Pensja { get; set; }
         public string Stanowisko { get; set; }
         public ObservableCollection<Pracownik> Podwladni { get; set; }
+        
+        public Pracownik Przelozony { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko)
+        public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko, Pracownik przelozony)
         {
             Imie = imie;
             Nazwisko = nazwisko;
@@ -27,6 +29,7 @@ namespace dotnet
             Pensja = pensja;
             Stanowisko = stanowisko;
             Podwladni = new ObservableCollection<Pracownik>();
+            Przelozony = przelozony;
         }
 
 
