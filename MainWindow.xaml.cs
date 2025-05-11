@@ -44,7 +44,9 @@ namespace dotnet
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
             // Generowanie danych
-            var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
+            //var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
+
+            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50); 
 
             PracownicyTreeView.ItemsSource = forest;
         }
@@ -88,6 +90,27 @@ namespace dotnet
                 formWindow.ShowDialog();
             }
         }
+
+        private void Zapytanie1_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                var wynik = PracownikQueries.Zapytanie1(pracownicy);
+                foreach (var item in wynik)
+                {
+                    Console.WriteLine($"UPPERCASE: {item.UPPERCASE}, SUM_OF: {item.SUM_OF}");
+                }
+            }
+        }
+
+        private void Zapytanie2_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                PracownikQueries.Zapytanie2(pracownicy);
+            }
+        }
+
 
         public MainWindow()
         {

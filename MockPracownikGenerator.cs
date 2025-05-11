@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,5 +55,18 @@ namespace dotnet
             }
             return pracownik;
         }
+
+        public static ObservableCollection<Pracownik> GenerateFlatStructure(int branchingFactor, int depth, int count = 50)
+        {
+            var all = new ObservableCollection<Pracownik>();
+
+            for (int i = 0; i < count; i++)
+            {
+                all.Add(GenerateTree(branchingFactor, depth, null));
+            }
+            return all;
+        }
+
+
     }
 }
