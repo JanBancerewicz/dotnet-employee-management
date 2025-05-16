@@ -6,22 +6,18 @@ namespace dotnet
 {
     public static class PracownikQueries
     {
-        public class Zapytanie1Result
-        {
-            public double SUM_OF { get; set; }
-            public string UPPERCASE { get; set; }
-        }
-
         //Projekcja elementów kolekcji
-        public static IEnumerable<Zapytanie1Result> Zapytanie1(IEnumerable<Pracownik> pracownicy)
+        public static IEnumerable<dynamic> Zapytanie1(IEnumerable<Pracownik> pracownicy)
         {
-            return pracownicy
-                .Where(p => IsOddGuid(p.ID))
-                .Select(p => new Zapytanie1Result
-                {
-                    SUM_OF = p.Info.OcenaPracownika + p.Info.Premia,
-                    UPPERCASE = p.Info.Wyksztalcenie.ToString().ToUpper()
-                });
+            var result = from p in pracownicy
+                         where IsOddGuid(p.ID)
+                         select new
+                         {
+                             SUM_OF = (double)p.Info.OcenaPracownika + p.Info.Premia,
+                             UPPERCASE = p.Info.Wyksztalcenie.ToString().ToUpper()
+                         };
+
+            return result;
         }
 
         //Grupowanie wyników zapytania 1
@@ -29,14 +25,19 @@ namespace dotnet
         {
             var projected = Zapytanie1(pracownicy);
 
-            var grouped = projected
-                .GroupBy(x => x.UPPERCASE);  // Grupowanie po poziomie wykształcenia
+            var grouped = 
+                from item in projected
+                group item by item.UPPERCASE into g
+                select new
+                {
+                    UPPERCASE = g.Key,
+                    AVG = g.Average(x => (double)x.SUM_OF)
+                };
 
-            
+
             foreach (var group in grouped)
             {
-                double avg = group.Average(x => x.SUM_OF);
-                Console.WriteLine($"UPPERCASE: {group.Key}, Średnia SUM_OF: {avg:F2}");
+                Console.WriteLine($"UPPERCASE: {group.UPPERCASE}, Średnia SUM_OF: {group.AVG:F2}");
             }
         }
 
