@@ -40,7 +40,9 @@
                                         <MenuItem Header="Usuń" Click="ItemDelete_Click" />
                                         <MenuItem Header="Dodaj podwladnego" Click="ItemAdd_Click" />
 										<MenuItem Header="Zapytanie 1" Click="Zapytanie1_Click"/>
-										<MenuItem Header="Zapytanie 2" Click="Zapytanie2_Click"/>
+                                        <MenuItem Header="Zapytanie 2" Click="Zapytanie2_Click"/>
+                                        <MenuItem Header="Eksportuj" Click="Eksportuj_Click"/>
+                                        <MenuItem Header="Importuj" Click="Importuj_Click"/>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>

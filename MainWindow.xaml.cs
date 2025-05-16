@@ -95,10 +95,9 @@ namespace dotnet
         {
             if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
             {
-                var wynik = PracownikQueries.Zapytanie1(pracownicy);
-                foreach (var item in wynik)
+                foreach (var item in PracownikQueries.Zapytanie1(pracownicy))
                 {
-                    Console.WriteLine($"UPPERCASE: {item.UPPERCASE}, SUM_OF: {item.SUM_OF}");
+                    Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
                 }
             }
         }
@@ -108,6 +107,22 @@ namespace dotnet
             if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
             {
                 PracownikQueries.Zapytanie2(pracownicy);
+            }
+        }
+
+        private void Eksportuj_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                XmlSerde.SavePracownicyToXml(pracownicy, "./save.xml");
+            }
+        }
+
+        private void Importuj_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("./save.xml");
             }
         }
 

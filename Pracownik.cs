@@ -37,6 +37,39 @@ namespace dotnet
             Przelozony = przelozony;
         }
 
+        private Pracownik()
+        {
+
+        }
+
+        public static Pracownik fromPracownikXml(XmlSerde.PracownikXml pXml, Pracownik? przelozony)
+        {
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            byte[] bytes = new byte[16];
+            BitConverter.GetBytes(timestamp).CopyTo(bytes, 0);
+            BitConverter.GetBytes(timestamp).CopyTo(bytes, 8);
+
+            Pracownik p = new Pracownik
+            {
+                ID = new Guid(bytes),
+                Imie = pXml.Imie,
+                Nazwisko = pXml.Nazwisko,
+                Staz = pXml.Staz,
+                Pensja = pXml.Pensja,
+                Stanowisko = pXml.Stanowisko,
+                Info = pXml.Info,
+                Przelozony = przelozony,
+                Podwladni = new ObservableCollection<Pracownik>(),
+            };
+
+            p.Podwladni = new ObservableCollection<Pracownik>(
+                    pXml.Podwladni?.Select(nowy => fromPracownikXml(nowy, p)) ?? new List<Pracownik>()
+                );
+
+
+            return p;
+        }
+
 
         public int CompareTo(Pracownik other)
         {
@@ -63,7 +96,8 @@ namespace dotnet
                 $"{ind}    [Brak]\n"
                 : string.Concat(Podwladni.Select(x => x.GetDetailsString(indent + 1)).ToArray());
 
-            return $"{ind}Imie: {Imie}\n" +
+            return $"{ind}ID: {ID}\n" +
+                $"{ind}Imie: {Imie}\n" +
                 $"{ind}Nazwisko: {Nazwisko}\n" +
                 $"{ind}Stanowisko: {Stanowisko}\n" +
                 $"{ind}Staż: {Staz}\n" +
