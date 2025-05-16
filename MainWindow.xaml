@@ -43,6 +43,7 @@
                                         <MenuItem Header="Zapytanie 2" Click="Zapytanie2_Click"/>
                                         <MenuItem Header="Eksportuj" Click="Eksportuj_Click"/>
                                         <MenuItem Header="Importuj" Click="Importuj_Click"/>
+                                        <MenuItem Header="XPath" Click="XPath_Click"/>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>

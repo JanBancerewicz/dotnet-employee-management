@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.XPath;
 
 namespace dotnet
 {
@@ -114,7 +115,7 @@ namespace dotnet
         {
             if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
             {
-                XmlSerde.SavePracownicyToXml(pracownicy, "./save.xml");
+                XmlSerde.SavePracownicyToXml(pracownicy, "../../../save.xml");
             }
         }
 
@@ -122,7 +123,26 @@ namespace dotnet
         {
             if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
             {
-                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("./save.xml");
+                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
+            }
+        }
+
+        private void XPath_Click(object sender, RoutedEventArgs e)
+        {
+            var xmlFile = @"../../../save.xml";
+            XPathDocument doc = new XPathDocument(xmlFile);
+            XPathNavigator nav = doc.CreateNavigator();
+
+            string xpath = "//PracownikXml[Podwladni[not(PracownikXml)]][not(Info/OcenaPracownika = preceding::PracownikXml/Info/OcenaPracownika)]";
+
+            var nodes = nav.Select(xpath);
+
+            int i = 1;
+            while (nodes.MoveNext())
+            {
+                var current = nodes.Current;
+                Console.WriteLine("\n" + (i++));
+                Console.WriteLine(current.OuterXml);
             }
         }
 
