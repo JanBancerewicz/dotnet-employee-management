@@ -146,6 +146,15 @@ namespace dotnet
             }
         }
 
+        private void HTML_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                var html = HtmlPrinter.GenerateHtmlTable(pracownicy);
+                html.Save("../../../pracownicy.html");
+            }
+        }
+
 
         public MainWindow()
         {

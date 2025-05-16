@@ -44,6 +44,7 @@
                                         <MenuItem Header="Eksportuj" Click="Eksportuj_Click"/>
                                         <MenuItem Header="Importuj" Click="Importuj_Click"/>
                                         <MenuItem Header="XPath" Click="XPath_Click"/>
+                                        <MenuItem Header="HTML" Click="HTML_Click"/>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>
