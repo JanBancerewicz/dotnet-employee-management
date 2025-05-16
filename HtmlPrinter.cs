@@ -9,20 +9,18 @@ namespace dotnet
             XDocument htmlDoc = new XDocument(
                 new XDocumentType("html", null, null, null),
                 new XElement("html",
-                    new XElement("head",
-                        new XElement("title", "Employee Hierarchy")),
                     new XElement("body",
                         new XElement("table",
                             new XAttribute("border", "1"),
                             new XElement("thead",
                                 new XElement("tr",
-                                    new XElement("th", "Name"),
-                                    new XElement("th", "Experience"),
-                                    new XElement("th", "Salary"),
-                                    new XElement("th", "Position"),
-                                    new XElement("th", "Rating"),
-                                    new XElement("th", "Bonus"),
-                                    new XElement("th", "Education")
+                                    new XElement("th", "Imie i Nazwisko"),
+                                    new XElement("th", "Staz"),
+                                    new XElement("th", "Pensja"),
+                                    new XElement("th", "Stanowisko"),
+                                    new XElement("th", "Ocena"),
+                                    new XElement("th", "Premia"),
+                                    new XElement("th", "Wyksztalcenie")
                                 )
                             ),
                             new XElement("tbody",
