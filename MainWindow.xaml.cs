@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net.Quic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.XPath;
 
 namespace dotnet
 {
@@ -44,7 +44,9 @@ namespace dotnet
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
             // Generowanie danych
-            var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
+            //var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
+
+            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50); 
 
             PracownicyTreeView.ItemsSource = forest;
         }
@@ -88,6 +90,70 @@ namespace dotnet
                 formWindow.ShowDialog();
             }
         }
+
+        private void Zapytanie1_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                foreach (var item in PracownikQueries.Zapytanie1(pracownicy))
+                {
+                    Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
+                }
+            }
+        }
+
+        private void Zapytanie2_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                PracownikQueries.Zapytanie2(pracownicy);
+            }
+        }
+
+        private void Eksportuj_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                XmlSerde.SavePracownicyToXml(pracownicy, "../../../save.xml");
+            }
+        }
+
+        private void Importuj_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
+            }
+        }
+
+        private void XPath_Click(object sender, RoutedEventArgs e)
+        {
+            var xmlFile = @"../../../save.xml";
+            XPathDocument doc = new XPathDocument(xmlFile);
+            XPathNavigator nav = doc.CreateNavigator();
+
+            string xpath = "//PracownikXml[Podwladni[not(PracownikXml)]][not(Info/OcenaPracownika = preceding::PracownikXml/Info/OcenaPracownika)]";
+
+            var nodes = nav.Select(xpath);
+
+            int i = 1;
+            while (nodes.MoveNext())
+            {
+                var current = nodes.Current;
+                Console.WriteLine("\n" + (i++));
+                Console.WriteLine(current.OuterXml);
+            }
+        }
+
+        private void HTML_Click(object sender, RoutedEventArgs e)
+        {
+            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            {
+                var html = HtmlPrinter.GenerateHtmlTable(pracownicy);
+                html.Save("../../../pracownicy.html");
+            }
+        }
+
 
         public MainWindow()
         {

@@ -10,26 +10,64 @@ namespace dotnet
 {
     public class Pracownik : INotifyPropertyChanged, IComparable<Pracownik>
     {
+        public Guid ID { get; set; }
         public string Imie { get; set; }
         public string Nazwisko { get; set; }
         public int Staz { get; set; }
         public double Pensja { get; set; }
         public string Stanowisko { get; set; }
+        public PracownikInfo Info { get; set; }
         public ObservableCollection<Pracownik> Podwladni { get; set; }
         
+
         public Pracownik Przelozony { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko, Pracownik przelozony)
         {
+            ID = Guid.NewGuid();
             Imie = imie;
             Nazwisko = nazwisko;
             Staz = staz;
             Pensja = pensja;
             Stanowisko = stanowisko;
+            Info = new PracownikInfo();
             Podwladni = new ObservableCollection<Pracownik>();
             Przelozony = przelozony;
+        }
+
+        private Pracownik()
+        {
+
+        }
+
+        public static Pracownik fromPracownikXml(XmlSerde.PracownikXml pXml, Pracownik? przelozony)
+        {
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            byte[] bytes = new byte[16];
+            BitConverter.GetBytes(timestamp).CopyTo(bytes, 0);
+            BitConverter.GetBytes(timestamp).CopyTo(bytes, 8);
+
+            Pracownik p = new Pracownik
+            {
+                ID = new Guid(bytes),
+                Imie = pXml.Imie,
+                Nazwisko = pXml.Nazwisko,
+                Staz = pXml.Staz,
+                Pensja = pXml.Pensja,
+                Stanowisko = pXml.Stanowisko,
+                Info = pXml.Info,
+                Przelozony = przelozony,
+                Podwladni = new ObservableCollection<Pracownik>(),
+            };
+
+            p.Podwladni = new ObservableCollection<Pracownik>(
+                    pXml.Podwladni?.Select(nowy => fromPracownikXml(nowy, p)) ?? new List<Pracownik>()
+                );
+
+
+            return p;
         }
 
 
@@ -48,7 +86,7 @@ namespace dotnet
 
         public override string ToString()
         {
-            return $"Pracownik{{ stanowisko = {Stanowisko}, nazwisko = {Nazwisko}, imie = {Imie}, staz = {Staz}, pensja = {Pensja} }}";
+            return $"Pracownik{{ stanowisko = {Stanowisko}, nazwisko = {Nazwisko}, imie = {Imie}, staz = {Staz}, pensja = {Pensja}, premia = {Info.Premia}, wykształcenie = {Info.Wyksztalcenie} }}";
         }
 
         public string GetDetailsString(int indent)
@@ -58,11 +96,15 @@ namespace dotnet
                 $"{ind}    [Brak]\n"
                 : string.Concat(Podwladni.Select(x => x.GetDetailsString(indent + 1)).ToArray());
 
-            return $"{ind}Imie: {Imie}\n" +
+            return $"{ind}ID: {ID}\n" +
+                $"{ind}Imie: {Imie}\n" +
                 $"{ind}Nazwisko: {Nazwisko}\n" +
                 $"{ind}Stanowisko: {Stanowisko}\n" +
                 $"{ind}Staż: {Staz}\n" +
                 $"{ind}Pensja: {Pensja}\n" +
+                $"{ind}Premia: {Info.Premia}\n" +
+                $"{ind}Ocena: {Info.OcenaPracownika}\n" +
+                $"{ind}Wykształcenie: {Info.Wyksztalcenie}\n" +
                 $"{ind}Podwładni:\n" +
                 $"{podwl}";
         }
