@@ -19,36 +19,77 @@ namespace dotnet
     /// </summary>
     public partial class MainWindow : Window
     {
-        private TreeViewItem BuildTreeItem(Pracownik pracownik)
+        public ObservableCollection<Pracownik> Pracownicy { get; set; }
+
+        public MainWindow()
         {
-            TreeViewItem item = new TreeViewItem
-            {
-                Header = $"{pracownik.Stanowisko}: {pracownik.Imie} {pracownik.Nazwisko}"
-            };
+            InitializeComponent();
+            Pracownicy = new ObservableCollection<Pracownik>();
+            DataContext = this; //stary jest na dole
+            Generate_Click(this, null); // xddd samo sie klika
+        }
 
-            foreach (var podwladny in pracownik.Podwladni)
+        private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null && child is not T)
             {
-                item.Items.Add(BuildTreeItem(podwladny));
+                child = VisualTreeHelper.GetParent(child);
             }
+            return child as T;
+        }
 
-            return item;
+
+        private void SubordinatesGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
+        {
+            if (sender is DataGrid grid && grid.DataContext is Pracownik przelozony)
+            {
+                var nowy = new Pracownik("NoweImie", "NoweNazwisko", 0, 0.0, "NoweStanowisko", przelozony);
+                e.NewItem = nowy;
+            }
+        }
+
+        private void DeleteEmployee_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button &&
+                button.DataContext is Pracownik pracownik)
+            {
+                if (pracownik.Przelozony != null)
+                {
+                    pracownik.Przelozony.Podwladni.Remove(pracownik);
+                }
+                else
+                {
+                    Pracownicy.Remove(pracownik);
+                }
+            }
+        }
+
+        private void AddSubordinate_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button &&
+                button.DataContext is Pracownik przelozony)
+            {
+                var nowy = new Pracownik("NoweImie", "NoweNazwisko", 0, 0.0, "NoweStanowisko", przelozony);
+
+                przelozony.Podwladni.Add(nowy);
+            }
         }
 
 
         private void Version_Click(object sender, RoutedEventArgs e)
         {
-            string version = "7_0b00000001";
+            string version = "9_0b00000001";
             MessageBox.Show($"Wersja aplikacji: {version}", "Wersja", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            // Generowanie danych
-            //var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
-
-            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50); 
-
-            PracownicyTreeView.ItemsSource = forest;
+            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50);
+            Pracownicy.Clear();
+            foreach (var pracownik in forest)
+            {
+                Pracownicy.Add(pracownik);
+            }
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -56,74 +97,132 @@ namespace dotnet
             Application.Current.Shutdown();
         }
 
-        private void PracownicyTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void PracownicyDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedItem = e.NewValue;
-
-            if (selectedItem is Pracownik pracownik)
+            if (PracownicyDataGrid.SelectedItem is Pracownik selected)
             {
-                detailsTextBlock.Text = pracownik.GetDetailsString(0);
+                ImieBox.Text = selected.Imie;
+                NazwiskoBox.Text = selected.Nazwisko;
+                StanowiskoBox.Text = selected.Stanowisko;
+                StazBox.Text = selected.Staz.ToString();
+                PensjaBox.Text = selected.Pensja.ToString("F2");
+                PremiaBox.Text = selected.Info?.Premia.ToString("F2") ?? "";
+                OcenaBox.Text = selected.Info?.OcenaPracownika.ToString("F1") ?? "";
+                WyksztalcenieBox.Text = selected.Info?.Wyksztalcenie.ToString() ?? "";
+                PodwladniBox.Text = selected.GetLiczbaPodwladnych().ToString();
+            }
+            else
+            {
+                ImieBox.Text = "";
+                NazwiskoBox.Text = "";
+                StanowiskoBox.Text = "";
+                StazBox.Text = "";
+                PensjaBox.Text = "";
+                PremiaBox.Text = "";
+                OcenaBox.Text = "";
+                WyksztalcenieBox.Text = "";
+                PodwladniBox.Text = "";
             }
         }
 
-        private void ItemDelete_Click(object sender, RoutedEventArgs e)
+        private void UpdateInspector(Pracownik p)
         {
-            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            if (p == null) return;
+
+            ImieBox.Text = p.Imie;
+            NazwiskoBox.Text = p.Nazwisko;
+            StanowiskoBox.Text = p.Stanowisko;
+            StazBox.Text = p.Staz.ToString();
+            PensjaBox.Text = p.Pensja.ToString("F2");
+            PremiaBox.Text = p.Info?.Premia.ToString("F2") ?? "";
+            OcenaBox.Text = p.Info?.OcenaPracownika.ToString() ?? "";
+            WyksztalcenieBox.Text = p.Info?.Wyksztalcenie.ToString() ?? "";
+            PodwladniBox.Text = p.GetLiczbaPodwladnych().ToString();
+        }
+
+        private void SubordinateDataGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+
+            var row = FindVisualParent<DataGridRow>(e.OriginalSource as DependencyObject);
+            if (row != null && row.Item is Pracownik clickedSubordinate)
             {
-                if (pracownik.Przelozony == null)
-                {
-                    ((ObservableCollection<Pracownik>) PracownicyTreeView.ItemsSource).Remove(pracownik);
-                    PracownicyTreeView.UpdateLayout();
-                }
-                else
-                {
-                    pracownik.Przelozony.Podwladni.Remove(pracownik);
-                }
+                // Odznacz głównego pracownika, jeśli zaznaczony
+                PracownicyDataGrid.SelectedItem = null;
+
+                // Zaktualizuj inspektor
+                UpdateInspector(clickedSubordinate);
+
+                // Zapobiegaj domyślnemu zaznaczeniu (opcjonalnie)
+                e.Handled = true;
+            }
+
+            
+        }
+
+        private void ShowEmployeeDetails(Pracownik emp)
+        {
+            if (emp == null)
+            {
+                ImieBox.Text = "";
+                NazwiskoBox.Text = "";
+                StanowiskoBox.Text = "";
+                StazBox.Text = "";
+                PensjaBox.Text = "";
+                PremiaBox.Text = "";
+                OcenaBox.Text = "";
+                WyksztalcenieBox.Text = "";
+                PodwladniBox.Text = "";
+                return;
+            }
+
+            ImieBox.Text = emp.Imie;
+            NazwiskoBox.Text = emp.Nazwisko;
+            StanowiskoBox.Text = emp.Stanowisko;
+            StazBox.Text = emp.Staz.ToString();
+            PensjaBox.Text = emp.Pensja.ToString("C"); // lub inny format
+            PremiaBox.Text = emp.Info?.Premia.ToString("C") ?? "";
+            OcenaBox.Text = emp.Info?.OcenaPracownika.ToString() ?? "";
+            WyksztalcenieBox.Text = emp.Info?.Wyksztalcenie.ToString() ?? "";
+            PodwladniBox.Text = emp.Podwladni?.Count.ToString() ?? "0";
+        }
+
+        private void PodwladniDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var dataGrid = sender as DataGrid;
+            if (dataGrid?.SelectedItem is Pracownik selectedSubordinate)
+            {
+                ShowEmployeeDetails(selectedSubordinate);
             }
         }
 
-        private void ItemAdd_Click(object sender, RoutedEventArgs e)
-        {
-            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
-            {
-                var formWindow = new AddPodwladnyWindow(pracownik);
-                formWindow.ShowDialog();
-            }
-        }
+
+
+
 
         private void Zapytanie1_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            foreach (var item in PracownikQueries.Zapytanie1(Pracownicy))
             {
-                foreach (var item in PracownikQueries.Zapytanie1(pracownicy))
-                {
-                    Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
-                }
+                Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
             }
         }
 
         private void Zapytanie2_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                PracownikQueries.Zapytanie2(pracownicy);
-            }
+            PracownikQueries.Zapytanie2(Pracownicy);
         }
 
         private void Eksportuj_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                XmlSerde.SavePracownicyToXml(pracownicy, "../../../save.xml");
-            }
+            XmlSerde.SavePracownicyToXml(Pracownicy, "../../../save.xml");
         }
 
         private void Importuj_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
-            }
+            var imported = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
+            Pracownicy.Clear();
+            foreach (var p in imported)
+                Pracownicy.Add(p);
         }
 
         private void XPath_Click(object sender, RoutedEventArgs e)
@@ -147,18 +246,9 @@ namespace dotnet
 
         private void HTML_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                var html = HtmlPrinter.GenerateHtmlTable(pracownicy);
-                html.Save("../../../pracownicy.html");
-            }
+            var html = HtmlPrinter.GenerateHtmlTable(Pracownicy);
+            html.Save("../../../pracownicy.html");
         }
 
-
-        public MainWindow()
-        {
-            InitializeComponent();
-            Generate_Click(this, null); // xddd samo sie klika
-        }
     }
 }
