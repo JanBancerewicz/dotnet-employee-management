@@ -50,9 +50,9 @@ namespace dotnet
 
         // Rekurencyjne wyszukiwanie
         public List<T> FindRecursiveByProperty<K>(
-            Expression<Func<T, K>> propertySelector,
-            K value,
-            Func<T, IEnumerable<T>> getSubordinates)
+    Expression<Func<T, K>> propertySelector,
+    object value, // Zmieniamy z K na object dla większej elastyczności
+    Func<T, IEnumerable<T>> getSubordinates)
         {
             var propertyName = GetPropertyName(propertySelector);
             var propertyInfo = typeof(T).GetProperty(propertyName);
