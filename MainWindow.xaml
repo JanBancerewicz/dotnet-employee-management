@@ -14,10 +14,10 @@
 		<Style TargetType="{x:Type DataGridRow}">
 			<EventSetter Event="PreviewMouseLeftButtonDown" Handler="DataGridRow_PreviewMouseLeftButtonDown"/>
 		</Style>
-
 	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
@@ -32,8 +32,27 @@
 			</MenuItem>
 		</Menu>
 
+		<!-- Toolbar z wyszukiwaniem -->
+		<ToolBar Grid.Row="1" Margin="5">
+			<ComboBox x:Name="SearchPropertyComboBox"
+                      Width="200"
+                      IsEditable="False"
+                      DisplayMemberPath="Name"
+                      ToolTip="Wybierz właściwość do wyszukiwania"
+                      Loaded="SearchPropertyComboBox_Loaded"/>
+
+			<TextBox x:Name="SearchValueTextBox"
+                     Width="150"
+                     ToolTip="Wpisz wartość do wyszukania"/>
+
+			<Button Content="Szukaj"
+                    Click="GenericSearch_Click"
+                    ToolTip="Wyszukaj elementy"/>
+		</ToolBar>
+
+		<!-- Reszta istniejącego kodu pozostaje bez zmian -->
+		<Grid Grid.Row="2">
 		<!-- Główna zawartość -->
-		<Grid Grid.Row="1">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="1.5*" />
 				<ColumnDefinition Width="5" />
@@ -148,8 +167,18 @@
 
 				<TextBlock Text="Liczba wszystkich podwładnych:" Margin="0,10,0,0"/>
 				<TextBox x:Name="PodwladniBox" IsReadOnly="True"/>
+
+					<StackPanel Orientation="Horizontal" Margin="5">
+						<Button Content="Sortuj po nazwisku" Click="SortRecursiveByNazwisko_Click" Margin="5"/>
+						<Button Content="Sortuj po pensji" Click="SortByPensja_Click" Margin="5"/>
+						<Button Content="Znajdź po imieniu" Click="FindRecursiveByImie_Click" Margin="5"/>
+						<Button Content="Znajdź po stażu" Click="FindByStaz_Click" Margin="5"/>
+					</StackPanel>
 				</StackPanel>
+				
 			</ScrollViewer>
+			
 		</Grid>
+		
 	</Grid>
 </Window>

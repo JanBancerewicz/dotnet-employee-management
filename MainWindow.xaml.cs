@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,14 +22,14 @@ namespace dotnet
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ObservableCollection<Pracownik> Pracownicy { get; set; }
+        public EnhancedObservableCollection<Pracownik> Pracownicy { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
-            Pracownicy = new ObservableCollection<Pracownik>();
-            DataContext = this; //stary jest na dole
-            Generate_Click(this, null); // xddd samo sie klika
+            Pracownicy = new EnhancedObservableCollection<Pracownik>();
+            DataContext = this;
+            Generate_Click(this, null);
         }
 
 
@@ -359,6 +361,268 @@ namespace dotnet
                 yield return VisualTreeHelper.GetChild(parent, i);
             }
         }
+
+        private void SortRecursiveByNazwisko_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Pracownicy.SortRecursiveByProperty(
+                    p => p.Nazwisko,
+                    true,
+                    (p, sub) => p.Podwladni = new EnhancedObservableCollection<Pracownik>(sub.Cast<Pracownik>()));
+
+                MessageBox.Show("Rekurencyjne sortowanie zakończone", "Sukces",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd sortowania: {ex.Message}", "Błąd",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void FindRecursiveByImie_Click(object sender, RoutedEventArgs e)
+        {
+            var input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Wpisz imię do wyszukania:", "Wyszukaj rekurencyjnie");
+
+            if (!string.IsNullOrEmpty(input))
+            {
+                var results = Pracownicy.FindRecursiveByProperty(
+                    p => p.Imie,
+                    input,
+                    p => p.Podwladni);
+
+                ShowSearchResults(results, "imieniu", input);
+            }
+        }
+
+        private void SortByPensja_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Określenie kierunku sortowania (można dodać przełączanie asc/desc)
+                bool ascending = true; // Domyślnie rosnąco
+
+                Pracownicy.SortRecursiveByProperty(
+                    p => p.Pensja,
+                    ascending,
+                    (pracownik, podwladni) =>
+                    {
+                        pracownik.Podwladni = new EnhancedObservableCollection<Pracownik>(podwladni.Cast<Pracownik>());
+                    });
+
+                // Opcjonalne powiadomienie
+                MessageBox.Show($"Pracownicy posortowani rekurencyjnie według pensji ({(ascending ? "rosnąco" : "malejąco")})",
+                              "Sortowanie zakończone",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas sortowania: {ex.Message}",
+                              "Błąd",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
+            }
+        }
+
+        private void FindByStaz_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var input = Microsoft.VisualBasic.Interaction.InputBox(
+                    "Wpisz staż do wyszukania (liczba całkowita):",
+                    "Wyszukaj pracowników według stażu");
+
+                if (string.IsNullOrEmpty(input)) return;
+
+                if (!int.TryParse(input, out int staz))
+                {
+                    MessageBox.Show("Proszę podać poprawną liczbę całkowitą dla stażu",
+                                  "Nieprawidłowe dane",
+                                  MessageBoxButton.OK,
+                                  MessageBoxImage.Warning);
+                    return;
+                }
+
+                var results = Pracownicy.FindRecursiveByProperty(
+                    p => p.Staz,
+                    staz,
+                    p => p.Podwladni);
+
+                DisplaySearchResults(results, $"stażem równym {staz}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas wyszukiwania: {ex.Message}",
+                              "Błąd",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
+            }
+        }
+
+        private void DisplaySearchResults(List<Pracownik> results, string searchCriteria)
+        {
+            if (results.Count == 0)
+            {
+                MessageBox.Show($"Nie znaleziono pracowników spełniających kryterium: {searchCriteria}",
+                    "Wyniki wyszukiwania", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Znaleziono {results.Count} pracowników:");
+            sb.AppendLine($"Kryterium: {searchCriteria}");
+            sb.AppendLine();
+
+            foreach (var p in results)
+            {
+                sb.AppendLine($"{p.Imie} {p.Nazwisko}");
+                sb.AppendLine($"- Stanowisko: {p.Stanowisko}");
+                sb.AppendLine($"- {searchCriteria}");
+                sb.AppendLine();
+            }
+
+            MessageBox.Show(sb.ToString(), "Wyniki wyszukiwania",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+
+        private void ShowSearchResults(List<Pracownik> results, string criterion, string value)
+        {
+            if (results.Count == 0)
+            {
+                MessageBox.Show($"Nie znaleziono pracowników z {criterion} '{value}'",
+                              "Wyniki wyszukiwania", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine($"Znaleziono {results.Count} pracowników z {criterion} '{value}':");
+            sb.AppendLine();
+
+            foreach (var p in results)
+            {
+                sb.AppendLine($"{p.Imie} {p.Nazwisko} (stanowisko: {p.Stanowisko})");
+            }
+
+            MessageBox.Show(sb.ToString(), "Wyniki wyszukiwania",
+                           MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void SearchPropertyComboBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchPropertyComboBox.Items.Count == 0)
+            {
+                LoadSearchableProperties();
+            }
+        }
+
+        private void LoadSearchableProperties()
+        {
+            SearchPropertyComboBox.Items.Clear();
+
+            var properties = typeof(Pracownik).GetProperties()
+                .Where(p => p.PropertyType == typeof(string)
+                        || p.PropertyType == typeof(int)
+                        || p.PropertyType == typeof(double))
+                .Where(p => p.Name != "ID") // Pomijamy właściwość ID
+                .OrderBy(p => p.Name);
+
+            foreach (var prop in properties)
+            {
+                SearchPropertyComboBox.Items.Add(prop);
+            }
+
+            if (SearchPropertyComboBox.Items.Count > 0)
+            {
+                SearchPropertyComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void GenericSearch_Click(object sender, RoutedEventArgs e)
+        {
+            if (SearchPropertyComboBox.SelectedItem == null)
+            {
+                MessageBox.Show("Wybierz właściwość do wyszukiwania", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var propertyInfo = (PropertyInfo)SearchPropertyComboBox.SelectedItem;
+            string searchValue = SearchValueTextBox.Text;
+
+            if (string.IsNullOrWhiteSpace(searchValue))
+            {
+                MessageBox.Show("Wpisz wartość do wyszukania", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                object searchValueConverted = Convert.ChangeType(searchValue, propertyInfo.PropertyType);
+
+                var results = new List<Pracownik>();
+                SearchInCollection(Pracownicy, propertyInfo, searchValueConverted, results);
+
+                DisplaySearchResults(results, $"{propertyInfo.Name} = {searchValue}");
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show($"Nieprawidłowy format dla właściwości {propertyInfo.Name}.", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas wyszukiwania: {ex.Message}", "Błąd",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ClearSearch_Click(object sender, RoutedEventArgs e)
+        {
+            SearchValueTextBox.Text = string.Empty;
+            // Możesz dodać kod do wyczyszczenia zaznaczenia w DataGrid
+        }
+
+        private Expression<Func<Pracownik, object>> CreatePropertySelector(string propertyName)
+        {
+            var parameter = System.Linq.Expressions.Expression.Parameter(typeof(Pracownik), "p");
+            var property = System.Linq.Expressions.Expression.Property(parameter, propertyName);
+            var convert = System.Linq.Expressions.Expression.Convert(property, typeof(object));
+            return System.Linq.Expressions.Expression.Lambda<Func<Pracownik, object>>(convert, parameter);
+        }
+
+        private void SearchPropertyComboBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadSearchableProperties();
+        }
+
+        
+
+        
+
+        private void SearchInCollection(IEnumerable<Pracownik> collection, PropertyInfo property, object value, List<Pracownik> results)
+        {
+            foreach (var pracownik in collection)
+            {
+                var propValue = property.GetValue(pracownik);
+                if (propValue != null && propValue.Equals(value))
+                {
+                    results.Add(pracownik);
+                }
+
+                // Rekurencyjne wyszukiwanie w podwładnych
+                if (pracownik.Podwladni != null && pracownik.Podwladni.Count > 0)
+                {
+                    SearchInCollection(pracownik.Podwladni, property, value, results);
+                }
+            }
+        }
+
+        
 
     }
 }
