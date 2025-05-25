@@ -148,8 +148,18 @@
 
 				<TextBlock Text="Liczba wszystkich podwładnych:" Margin="0,10,0,0"/>
 				<TextBox x:Name="PodwladniBox" IsReadOnly="True"/>
+
+					<StackPanel Orientation="Horizontal" Margin="5">
+						<Button Content="Sortuj po nazwisku" Click="SortRecursiveByNazwisko_Click" Margin="5"/>
+						<Button Content="Sortuj po pensji" Click="SortByPensja_Click" Margin="5"/>
+						<Button Content="Znajdź po imieniu" Click="FindRecursiveByImie_Click" Margin="5"/>
+						<Button Content="Znajdź po stażu" Click="FindByStaz_Click" Margin="5"/>
+					</StackPanel>
 				</StackPanel>
+				
 			</ScrollViewer>
+			
 		</Grid>
+		
 	</Grid>
 </Window>

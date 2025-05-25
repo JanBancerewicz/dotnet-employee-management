@@ -96,8 +96,8 @@ namespace dotnet
             }
         }
 
-        private ObservableCollection<Pracownik> podwladni;
-        public ObservableCollection<Pracownik> Podwladni
+        private EnhancedObservableCollection<Pracownik> podwladni;
+        public EnhancedObservableCollection<Pracownik> Podwladni
         {
             get => podwladni;
             set
@@ -140,7 +140,7 @@ namespace dotnet
             Pensja = pensja;
             Stanowisko = stanowisko;
             Info = new PracownikInfo();
-            Podwladni = new ObservableCollection<Pracownik>();
+            Podwladni = new EnhancedObservableCollection<Pracownik>();
             Przelozony = przelozony;
         }
 
@@ -165,11 +165,11 @@ namespace dotnet
                 Pensja = pXml.Pensja,
                 Stanowisko = pXml.Stanowisko,
                 Info = pXml.Info,
-                Przelozony = przelozony,
-                Podwladni = new ObservableCollection<Pracownik>(),
+                Podwladni = new EnhancedObservableCollection<Pracownik>(),
+                Przelozony = przelozony
             };
 
-            p.Podwladni = new ObservableCollection<Pracownik>(
+            p.Podwladni = new EnhancedObservableCollection<Pracownik>(
                     pXml.Podwladni?.Select(nowy => fromPracownikXml(nowy, p)) ?? new List<Pracownik>()
                 );
 
