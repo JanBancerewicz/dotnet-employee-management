@@ -11,18 +11,125 @@ namespace dotnet
     public class Pracownik : INotifyPropertyChanged, IComparable<Pracownik>
     {
         public Guid ID { get; set; }
-        public string Imie { get; set; }
-        public string Nazwisko { get; set; }
-        public int Staz { get; set; }
-        public double Pensja { get; set; }
-        public string Stanowisko { get; set; }
-        public PracownikInfo Info { get; set; }
-        public ObservableCollection<Pracownik> Podwladni { get; set; }
-        
 
-        public Pracownik Przelozony { get; set; }
+        private string imie;
+        public string Imie
+        {
+            get => imie;
+            set
+            {
+                if (imie != value)
+                {
+                    imie = value;
+                    OnPropertyChanged(nameof(Imie));
+                }
+            }
+        }
+
+        private string nazwisko;
+        public string Nazwisko
+        {
+            get => nazwisko;
+            set
+            {
+                if (nazwisko != value)
+                {
+                    nazwisko = value;
+                    OnPropertyChanged(nameof(Nazwisko));
+                }
+            }
+        }
+
+        private int staz;
+        public int Staz
+        {
+            get => staz;
+            set
+            {
+                if (staz != value)
+                {
+                    staz = value;
+                    OnPropertyChanged(nameof(Staz));
+                }
+            }
+        }
+
+        private double pensja;
+        public double Pensja
+        {
+            get => pensja;
+            set
+            {
+                if (pensja != value)
+                {
+                    pensja = value;
+                    OnPropertyChanged(nameof(Pensja));
+                }
+            }
+        }
+
+        private string stanowisko;
+        public string Stanowisko
+        {
+            get => stanowisko;
+            set
+            {
+                if (stanowisko != value)
+                {
+                    stanowisko = value;
+                    OnPropertyChanged(nameof(Stanowisko));
+                }
+            }
+        }
+
+        private PracownikInfo info;
+        public PracownikInfo Info
+        {
+            get => info;
+            set
+            {
+                if (info != value)
+                {
+                    info = value;
+                    OnPropertyChanged(nameof(Info));
+                }
+            }
+        }
+
+        private ObservableCollection<Pracownik> podwladni;
+        public ObservableCollection<Pracownik> Podwladni
+        {
+            get => podwladni;
+            set
+            {
+                if (podwladni != value)
+                {
+                    podwladni = value;
+                    OnPropertyChanged(nameof(Podwladni));
+                }
+            }
+        }
+
+        private Pracownik przelozony;
+        public Pracownik Przelozony
+        {
+            get => przelozony;
+            set
+            {
+                if (przelozony != value)
+                {
+                    przelozony = value;
+                    OnPropertyChanged(nameof(Przelozony));
+                }
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public Pracownik(string imie, string nazwisko, int staz, double pensja, string stanowisko, Pracownik przelozony)
         {
@@ -69,6 +176,8 @@ namespace dotnet
 
             return p;
         }
+
+
 
 
         public int CompareTo(Pracownik other)
@@ -121,6 +230,11 @@ namespace dotnet
 
             statistics[this] = subCount;
             return subCount;
+        }
+
+        public int GetLiczbaPodwladnych()
+        {
+            return GetPodwladniCount(new Dictionary<Pracownik, int>());
         }
     }
 }

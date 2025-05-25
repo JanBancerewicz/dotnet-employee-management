@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -19,36 +20,131 @@ namespace dotnet
     /// </summary>
     public partial class MainWindow : Window
     {
-        private TreeViewItem BuildTreeItem(Pracownik pracownik)
+        public ObservableCollection<Pracownik> Pracownicy { get; set; }
+
+        public MainWindow()
         {
-            TreeViewItem item = new TreeViewItem
-            {
-                Header = $"{pracownik.Stanowisko}: {pracownik.Imie} {pracownik.Nazwisko}"
-            };
+            InitializeComponent();
+            Pracownicy = new ObservableCollection<Pracownik>();
+            DataContext = this; //stary jest na dole
+            Generate_Click(this, null); // xddd samo sie klika
+        }
 
-            foreach (var podwladny in pracownik.Podwladni)
+
+
+        private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null && child is not T)
             {
-                item.Items.Add(BuildTreeItem(podwladny));
+                child = VisualTreeHelper.GetParent(child);
             }
+            return child as T;
+        }
 
-            return item;
+
+        public void SubordinatesGrid_AddingNewItem(object sender, AddingNewItemEventArgs e)
+        {
+            if (sender is DataGrid grid && grid.DataContext is Pracownik przelozony)
+            {
+                var nowy = new Pracownik("NoweImie", "NoweNazwisko", 0, 0.0, "NoweStanowisko", przelozony);
+                e.NewItem = nowy;
+            }
+        }
+
+        public void DeleteEmployee_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button &&
+                button.DataContext is Pracownik pracownik)
+            {
+                if (pracownik.Przelozony != null)
+                {
+                    pracownik.Przelozony.Podwladni.Remove(pracownik);
+                }
+                else
+                {
+                    Pracownicy.Remove(pracownik);
+                }
+            }
+        }
+
+        public void AddSubordinate_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button &&
+                button.DataContext is Pracownik przelozony)
+            {
+                var nowy = new Pracownik("NoweImie", "NoweNazwisko", 0, 0.0, "NoweStanowisko", przelozony);
+
+                przelozony.Podwladni.Add(nowy);
+            }
         }
 
 
         private void Version_Click(object sender, RoutedEventArgs e)
         {
-            string version = "7_0b00000001";
+            string version = "9_0b00000001";
             MessageBox.Show($"Wersja aplikacji: {version}", "Wersja", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        /*private void Generate_Click(object sender, RoutedEventArgs e)
+        {
+            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50);
+            Pracownicy.Clear();
+            foreach (var pracownik in forest)
+            {
+                Pracownicy.Add(pracownik);
+            }
+        }*/
+
+        private void ExpandAllSubordinates(DataGrid grid)
+        {
+            if (grid == null) return;
+
+            foreach (var item in grid.Items)
+            {
+                var row = grid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+                if (row != null)
+                {
+                    row.DetailsVisibility = Visibility.Visible;
+
+                    // Rekurencyjne rozwijanie podrzędnych DataGrid
+                    var detailsPresenter = FindVisualChild<DataGridDetailsPresenter>(row);
+                    if (detailsPresenter != null)
+                    {
+                        var nestedGrid = FindVisualChild<DataGrid>(detailsPresenter);
+                        ExpandAllSubordinates(nestedGrid);
+                    }
+                }
+            }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+            {
+                var child = VisualTreeHelper.GetChild(obj, i);
+                if (child is T result)
+                    return result;
+
+                var childResult = FindVisualChild<T>(child);
+                if (childResult != null)
+                    return childResult;
+            }
+            return null;
+        }
+
+        // Modyfikacja metody Generate_Click
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            // Generowanie danych
-            //var forest = MockPracownikGenerator.GenerateForest(branchingFactor: 3, depth: 2);
+            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 10);
+            Pracownicy.Clear();
+            foreach (var pracownik in forest)
+            {
+                Pracownicy.Add(pracownik);
+            }
 
-            var forest = MockPracownikGenerator.GenerateFlatStructure(branchingFactor: 3, depth: 2, count: 50); 
-
-            PracownicyTreeView.ItemsSource = forest;
+            // Rozwiń wszystkie poziomy po wygenerowaniu danych
+            Dispatcher.BeginInvoke(new Action(() => ExpandAllSubordinates(PracownicyDataGrid)),
+                System.Windows.Threading.DispatcherPriority.Background);
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -56,74 +152,122 @@ namespace dotnet
             Application.Current.Shutdown();
         }
 
-        private void PracownicyTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void PracownicyDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var selectedItem = e.NewValue;
-
-            if (selectedItem is Pracownik pracownik)
+            if (PracownicyDataGrid.SelectedItem is Pracownik selected)
             {
-                detailsTextBlock.Text = pracownik.GetDetailsString(0);
+                UpdateEmployeeDetails(selected);
+            }
+            else
+            {
+                ClearInspector();
             }
         }
 
-        private void ItemDelete_Click(object sender, RoutedEventArgs e)
+        public void UpdateEmployeeDetails(Pracownik pracownik)
         {
-            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            if (pracownik == null)
             {
-                if (pracownik.Przelozony == null)
+                ClearInspector();
+                return;
+            }
+
+            ImieBox.Text = pracownik.Imie;
+            NazwiskoBox.Text = pracownik.Nazwisko;
+            StanowiskoBox.Text = pracownik.Stanowisko;
+            StazBox.Text = pracownik.Staz.ToString();
+            PensjaBox.Text = pracownik.Pensja.ToString("F2");
+            PremiaBox.Text = pracownik.Info?.Premia.ToString("F2") ?? "0";
+            OcenaBox.Text = pracownik.Info?.OcenaPracownika.ToString("F1") ?? "0";
+            WyksztalcenieBox.Text = pracownik.Info?.Wyksztalcenie.ToString() ?? "Brak";
+            PodwladniBox.Text = pracownik.GetLiczbaPodwladnych().ToString();
+        }
+
+        private void ClearInspector()
+        {
+            ImieBox.Text = string.Empty;
+            NazwiskoBox.Text = string.Empty;
+            StanowiskoBox.Text = string.Empty;
+            StazBox.Text = string.Empty;
+            PensjaBox.Text = string.Empty;
+            PremiaBox.Text = string.Empty;
+            OcenaBox.Text = string.Empty;
+            WyksztalcenieBox.Text = string.Empty;
+            PodwladniBox.Text = string.Empty;
+        }
+
+        private void DataGridRow_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is DataGridRow row && row.Item is Pracownik pracownik)
+            {
+                UpdateEmployeeDetails(pracownik);
+
+                // Upewnij się, że wiersz jest zaznaczony
+                if (row.IsSelected)
                 {
-                    ((ObservableCollection<Pracownik>) PracownicyTreeView.ItemsSource).Remove(pracownik);
-                    PracownicyTreeView.UpdateLayout();
-                }
-                else
-                {
-                    pracownik.Przelozony.Podwladni.Remove(pracownik);
+                    if (FindVisualParent<DataGrid>(row) is DataGrid parentGrid)
+                    {
+                        parentGrid.SelectedItem = pracownik;
+                    }
                 }
             }
         }
 
-        private void ItemAdd_Click(object sender, RoutedEventArgs e)
+
+
+        private void ShowEmployeeDetails(Pracownik emp)
         {
-            if (PracownicyTreeView.SelectedItem is Pracownik pracownik)
+            if (emp == null)
             {
-                var formWindow = new AddPodwladnyWindow(pracownik);
-                formWindow.ShowDialog();
+                ImieBox.Text = "";
+                NazwiskoBox.Text = "";
+                StanowiskoBox.Text = "";
+                StazBox.Text = "";
+                PensjaBox.Text = "";
+                PremiaBox.Text = "";
+                OcenaBox.Text = "";
+                WyksztalcenieBox.Text = "";
+                PodwladniBox.Text = "";
+                return;
             }
+
+            ImieBox.Text = emp.Imie;
+            NazwiskoBox.Text = emp.Nazwisko;
+            StanowiskoBox.Text = emp.Stanowisko;
+            StazBox.Text = emp.Staz.ToString();
+            PensjaBox.Text = emp.Pensja.ToString("C"); // lub inny format
+            PremiaBox.Text = emp.Info?.Premia.ToString("C") ?? "";
+            OcenaBox.Text = emp.Info?.OcenaPracownika.ToString() ?? "";
+            WyksztalcenieBox.Text = emp.Info?.Wyksztalcenie.ToString() ?? "";
+            PodwladniBox.Text = emp.Podwladni?.Count.ToString() ?? "0";
         }
+
+
 
         private void Zapytanie1_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            foreach (var item in PracownikQueries.Zapytanie1(Pracownicy))
             {
-                foreach (var item in PracownikQueries.Zapytanie1(pracownicy))
-                {
-                    Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
-                }
+                Console.WriteLine($"SUM_OF: {item.SUM_OF}, UPPERCASE: {item.UPPERCASE}");
             }
         }
 
         private void Zapytanie2_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                PracownikQueries.Zapytanie2(pracownicy);
-            }
+            PracownikQueries.Zapytanie2(Pracownicy);
         }
 
         private void Eksportuj_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                XmlSerde.SavePracownicyToXml(pracownicy, "../../../save.xml");
-            }
+            XmlSerde.SavePracownicyToXml(Pracownicy, "../../../save.xml");
         }
 
         private void Importuj_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
-            {
-                PracownicyTreeView.ItemsSource = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
-            }
+            var imported = XmlSerde.LoadPracownicyFromXml("../../../save.xml");
+            Pracownicy.Clear();
+            foreach (var p in imported)
+                Pracownicy.Add(p);
         }
 
         private void XPath_Click(object sender, RoutedEventArgs e)
@@ -147,18 +291,74 @@ namespace dotnet
 
         private void HTML_Click(object sender, RoutedEventArgs e)
         {
-            if (PracownicyTreeView.ItemsSource is ObservableCollection<Pracownik> pracownicy)
+            var html = HtmlPrinter.GenerateHtmlTable(Pracownicy);
+            html.Save("../../../pracownicy.html");
+        }
+
+
+        // Rozwiń wszystkie wiersze
+        private void ExpandAll_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllDetailsVisibility(PracownicyDataGrid, true);
+        }
+
+        // Zwiń wszystkie wiersze
+        private void CollapseAll_Click(object sender, RoutedEventArgs e)
+        {
+            SetAllDetailsVisibility(PracownicyDataGrid, false);
+        }
+
+        // Metoda pomocnicza
+        private void SetAllDetailsVisibility(DataGrid dataGrid, bool isExpanded)
+        {
+            if (dataGrid == null) return;
+
+            foreach (var item in dataGrid.Items)
             {
-                var html = HtmlPrinter.GenerateHtmlTable(pracownicy);
-                html.Save("../../../pracownicy.html");
+                var row = dataGrid.ItemContainerGenerator.ContainerFromItem(item) as DataGridRow;
+                if (row != null)
+                {
+                    row.DetailsVisibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
+
+                    // Rekurencyjnie dla zagnieżdżonych DataGridów
+                    if (isExpanded && row.DetailsVisibility == Visibility.Visible)
+                    {
+                        var detailsPresenter = GetVisualChild<DataGridDetailsPresenter>(row);
+                        if (detailsPresenter != null)
+                        {
+                            foreach (var child in GetVisualChildren(detailsPresenter))
+                            {
+                                if (child is DataGrid nestedGrid)
+                                {
+                                    SetAllDetailsVisibility(nestedGrid, isExpanded);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-
-        public MainWindow()
+        // Pomocnicza metoda do znajdowania kontrolek
+        private static T GetVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
-            InitializeComponent();
-            Generate_Click(this, null); // xddd samo sie klika
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                    return result;
+            }
+            return null;
         }
+
+        // Pomocnicza metoda dla wszystkich dzieci
+        private static IEnumerable<DependencyObject> GetVisualChildren(DependencyObject parent)
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                yield return VisualTreeHelper.GetChild(parent, i);
+            }
+        }
+
     }
 }
