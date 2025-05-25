@@ -1,0 +1,66 @@
+﻿<UserControl x:Class="dotnet.NestedEmployeesGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:dotnet"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <DataGrid x:Name="NestedDataGrid"
+              ItemsSource="{Binding Podwladni}"
+              Margin="20,5,5,5"
+              AutoGenerateColumns="False"
+              HeadersVisibility="Column"
+              CanUserAddRows="True"
+              CanUserDeleteRows="True"
+              CanUserSortColumns="True"
+              IsReadOnly="False"
+              SelectionMode="Single"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
+              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+              ScrollViewer.CanContentScroll="True"
+            MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              HorizontalAlignment="Stretch">
+
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Imię" Binding="{Binding Imie, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Nazwisko" Binding="{Binding Nazwisko, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Stanowisko" Binding="{Binding Stanowisko, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Staż" Binding="{Binding Staz, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Pensja" Binding="{Binding Pensja, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Premia" Binding="{Binding Info.Premia, Mode=TwoWay}" />
+            <DataGridTextColumn Header="Ocena" Binding="{Binding Info.OcenaPracownika, Mode=TwoWay}" />
+            <DataGridComboBoxColumn Header="Wykształcenie"
+                SelectedItemBinding="{Binding Info.Wyksztalcenie, Mode=TwoWay}"
+                ItemsSource="{x:Static local:PoziomWyksztalceniaHelper.AllValues}" />
+
+            <DataGridTemplateColumn Header="Usuń">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <Button Content="USUŃ" 
+                                Click="DeleteEmployee_Click" 
+                                Padding="2"
+                                ToolTip="Usuń pracownika"/>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTemplateColumn Header="Dodaj podwładnego">
+                <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                        <Button Content="DODAJ" 
+                                Click="AddSubordinate_Click" 
+                                Padding="2"
+                                ToolTip="Dodaj podwładnego"/>
+                    </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+        </DataGrid.Columns>
+
+        <DataGrid.RowDetailsTemplate>
+            <DataTemplate>
+                <local:NestedEmployeesGrid/>
+            </DataTemplate>
+        </DataGrid.RowDetailsTemplate>
+    </DataGrid>
+</UserControl>
