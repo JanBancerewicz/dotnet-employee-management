@@ -4,6 +4,9 @@
              xmlns:local="clr-namespace:dotnet"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <Style TargetType="DataGrid" x:Key="NestedDataGridStyle">
+            <Setter Property="Margin" Value="20,5,5,5"/>
+        </Style>
+
     </Application.Resources>
 </Application>

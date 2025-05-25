@@ -56,7 +56,7 @@ namespace dotnet
             return pracownik;
         }
 
-        public static ObservableCollection<Pracownik> GenerateFlatStructure(int branchingFactor, int depth, int count = 50)
+        public static ObservableCollection<Pracownik> GenerateFlatStructure(int branchingFactor, int depth, int count = 20)
         {
             var all = new ObservableCollection<Pracownik>();
 
