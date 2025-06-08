@@ -27,8 +27,17 @@
 			<MenuItem Header="Application">
 				<MenuItem Header="Generate data" Click="Generate_Click"/>
 				<MenuItem Header="Version" Click="Version_Click"/>
+				<MenuItem Header="Zapytanie 1" Click="Zapytanie1_Click"/>
+				<MenuItem Header="Zapytanie 2" Click="Zapytanie2_Click"/>
 				<Separator/>
 				<MenuItem Header="Exit" Click="Exit_Click"/>
+			</MenuItem>
+			<MenuItem Header="Data">
+				<MenuItem Header="Eksport" Click="Eksportuj_Click"/>
+				<MenuItem Header="Import" Click="Importuj_Click"/>
+				<Separator/>
+				<MenuItem Header="Zapisz jako XPath" Click="XPath_Click"/>
+				<MenuItem Header="Zapisz jako HTML" Click="HTML_Click"/>
 			</MenuItem>
 		</Menu>
 
